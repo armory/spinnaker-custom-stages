@@ -230,7 +230,7 @@ if __name__ == '__main__':
     print(F"SPINNAKER_PROPERTY_BUILD_STATUS={status}")
 
 
-    # If pipeline has failed or is still running (or pending), print status and 
+    # If pipeline has failed or is still running (or pending), print status and exit
     if status == 'pending' or status == 'running':
       print(F"[{time.ctime()}] Project ID {project_id} pipeline #{pipeline_id} didn't complete in the allotted time (status is '{status}')")
       sys.exit(1)
@@ -240,7 +240,7 @@ if __name__ == '__main__':
 
     print(F"[{time.ctime()}] Project ID {project_id} pipeline #{pipeline_id} build COMPLETED (status is '{status}')")
 
-    if job_name and artifact_name:
+    if job_name and artifact_name and len(job_name) > 0 and len(artifact_name) > 0:
       print(F"[{time.ctime()}] Identifying job '{job_name}' from project ID {project_id} pipeline #{pipeline_id}")
       url = base_url + '/projects/' + str(project_id) + '/pipelines/' + str(pipeline_id) + '/jobs'
       if verbose:
@@ -279,9 +279,11 @@ if __name__ == '__main__':
 
       if artifact_is_json or content_type.split(';')[0] == 'application/json':
         body = r.json()
-        print(F"SPINNAKER_JSON_CONFIG={json.dumps(body)}")
+        print(F"SPINNAKER_CONFIG_JSON={json.dumps(body)}")
 
       else:
         content = r.content
         for line in content.splitlines():
           print(F"SPINNAKER_PROPERTY_{line.decode('utf-8')}")
+    else:
+      print(F"[{time.ctime()}] Job and artifact not populated, not retrieving metadata")

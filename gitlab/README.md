@@ -5,7 +5,7 @@ This container allows you to monitor a specific Datadog monitor for health for s
 ## Create Secret
 
 ```bash
-kubectl -n test create secret datadog-keys --from-literal=dd_api_key=x --from-literal=dd_app_key=y
+kubectl -n test create secret generic gitlab --from-literal=GITLAB_TOKEN=<PERSONAL_ACCESS_TOKEN>
 ```
 
 ## Sample manifest
