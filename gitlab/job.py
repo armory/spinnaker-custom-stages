@@ -157,6 +157,11 @@ if __name__ == '__main__':
         print(F"GET on {url}")
       r = requests.get(url, headers=headers)
 
+      if not r:
+        print(F"[{time.ctime()}] Unable to get project ID [GET {url}], status code {r.status_code}:")
+        print(r.text)
+        sys.exit(1)
+
       body = r.json()
       if verbose:
         print(body)
@@ -170,12 +175,19 @@ if __name__ == '__main__':
       print(F"[{time.ctime()}] Identified project ID {project_id}")
 
 
-    print(F"[{time.ctime()}] Triggering a build in project ID {project_id}, on branch [{branch}]...")
+    print(F"[{time.ctime()}] Triggering a build in project ID {project_id}, on branch [{branch}], with variables {variables}")
     url = base_url + '/projects/' + str(project_id) + '/pipeline'
     if verbose:
       print(F"POST on {url}")
       print(json_body)
     r = requests.post(url, headers=post_headers, json=json_body)
+
+    if not r:
+      print(F"[{time.ctime()}] Unable to trigger pipeline [POST {url}], body [{json.dumps(json_body)}], status code {r.status_code}:")
+      print(r.text)
+      if r.status_code == 400:
+        print(f"Try checking the pipeline definition for branch {branch}")
+      sys.exit(1)
   
     body = r.json()
     if verbose:
@@ -185,6 +197,10 @@ if __name__ == '__main__':
     web_url = body['web_url']
     print(F"[{time.ctime()}] Triggered pipeline #{pipeline_id} in project ID {project_id}.  URL for build is {web_url}")
     print(F"SPINNAKER_PROPERTY_BUILD_URL={web_url}")
+    if max_wait == 0:
+      print(F"[{time.ctime()}] Checking status every {interval} seconds indefinitely.")
+    else:
+      print(F"[{time.ctime()}] Checking status every {interval} seconds for up to {max_wait} intervals.")
     
     c = 0
     while c <= max_wait:
@@ -193,6 +209,11 @@ if __name__ == '__main__':
       if verbose:
         print(F"GET on {url}")
       r = requests.get(url, headers=headers)
+
+      if not r:
+        print(F"[{time.ctime()}] Unable to check status of pipeline [GET {url}], status code {r.status_code}:")
+        print(r.text)
+        sys.exit(1)
 
       if verbose:
         print(r.json())
@@ -226,8 +247,19 @@ if __name__ == '__main__':
         print(F"GET on {url}")
       r = requests.get(url, headers=headers)
 
+      if not r:
+        print(F"[{time.ctime()}] Unable to get job list for pipeline [GET {url}], status code {r.status_code}:")
+        print(r.text)
+        sys.exit(1)
+
       body = r.json()
       j = list(filter(lambda x: x['name'] == job_name, body))
+
+      if len(j) == 0:
+        print(F"[{time.ctime()}] Job called '{job_name}' not found for pipeline.")
+        print(r.text)
+        sys.exit(1)
+
       job_id = j[0]['id']
       print(F"[{time.ctime()}] Identified job '{job_id}' from project ID {project_id} pipeline #{pipeline_id}")
 
@@ -235,6 +267,11 @@ if __name__ == '__main__':
       if verbose:
         print(F"GET on {url}")
       r = requests.get(url, headers=headers)
+
+      if not r:
+        print(F"[{time.ctime()}] Unable to get artifact for pipeline [GET {url}], status code {r.status_code}:")
+        print(r.text)
+        sys.exit(1)
 
       content_type = r.headers.get('content-type')
       if verbose:
