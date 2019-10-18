@@ -1,0 +1,50 @@
+# A RoleBinding may also reference a ClusterRole to grant the permissions to 
+# namespaced resources defined in the ClusterRole within the RoleBinding’s namespace. 
+# This allows administrators to define a set of common roles for the entire cluster, #
+# then reuse them within multiple namespaces.
+
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cleanup-operator
+  # Update this namespace
+  namespace: NAMESPACE
+
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: cleanup-operator
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+  - delete
+- apiGroups: ["batch", "extensions"]
+  resources:
+  - jobs
+  verbs:
+  - delete
+
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: RoleBinding
+metadata:
+  name: cleanup-operator
+  # Update this namespace
+  namespace: NAMESPACE
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cleanup-operator
+subjects:
+- kind: ServiceAccount
+  name: cleanup-operator
+  # Update this namespace
+  namespace: NAMESPACE
