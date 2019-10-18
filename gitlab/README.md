@@ -1,6 +1,6 @@
-# Datadog Monitor
+# GitLab Stage
 
-This container allows you to monitor a specific Datadog monitor for health for some duration (period * interval)
+This container allows you to trigger a GitLab pipeline (which lives in a repo, and is attached to a specific branch), wait for it to complete, and gather information about the triggered pipeline.
 
 ## Create Secret
 
@@ -8,14 +8,14 @@ This container allows you to monitor a specific Datadog monitor for health for s
 kubectl -n test create secret generic gitlab --from-literal=GITLAB_TOKEN=<PERSONAL_ACCESS_TOKEN>
 ```
 
-## Sample manifest
+## Sample manifest to run directly
 
 ```yaml
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: datadog-test
-  namespace: test
+  name: gitlab-test
+  namespace: root-change
 spec:
   backoffLimit: 0
   template:
@@ -23,23 +23,18 @@ spec:
       containers:
         - name: datadog
           env:
-            - name: DD_API_KEY
+            - name: GITLAB_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: datadog-keys
-                  key: dd_api_key
-            - name: DD_APP_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: datadog-keys
-                  key: dd_app_key
-            - name: DD_MONITOR_ID
-              value: '9631699'
-            - name: COUNT
-              value: '10'
-            - name: INTERVAL
-              value: '30'
-          image: 'justinrlee/rj-datadog-monitor:1571103399'
+                  name: gitlab
+                  key: GITLAB_TOKEN
+            - name: GITLAB_URL
+              value: 'http://gitlab.domain.com
+            - name: PROJECT_NAME
+              value: 'superteam/my-awesome-project'
+            - name: BRANCH
+              value: 'master'
+          image: 'justinrlee/rj-gitlab:1571415673'
       restartPolicy: Never
   ttlSecondsAfterFinished: 600
 ```
@@ -52,10 +47,10 @@ spec:
 job:
   preconfigured:
     kubernetes:
-      - label: Check Datadog Monitor
-        type: checkDatadog
+      - label: GitLab
+        type: gitlab
         # this defines the 'type' of the stage in the stage definition
-        description: Check Datadog monitor
+        description: Run GitLab Pipeline
         cloudProvider: kubernetes
         account: spinnaker
         # ^ cloud provider account for both account and credentials
@@ -64,54 +59,72 @@ job:
         waitForCompletion: true
         application: spin
         # ^ must exist, must have at least one server group
-        propertyFile: datadog-monitor
+        propertyFile: gitlab
         # ^ which container to look in for SPINNAKER_CONFIG_JSON
         parameters:
-          - name: Monitor
-            label: Monitor ID
-            description: Datadog monitor ID to monitor
+          - name: Project Name
+            label: Project Name
+            description: Fully qualified Project Name (e.g., 'superteam/my-awesome-project')
             mapping: manifest.spec.template.spec.containers[0].env[2].value
-            defaultValue: "9631699"
-          - name: Count
-            label: Count
-            description: Number of polls to run
+            defaultValue: "superteam/my-awesome-project"
+          - name: Branch
+            label: Branch
+            description: Branch to run on
             mapping: manifest.spec.template.spec.containers[0].env[3].value
-            defaultValue: "4"
+            defaultValue: "master"
           - name: Interval
             label: Interval
             description: Interval between polls
             mapping: manifest.spec.template.spec.containers[0].env[4].value
-            defaultValue: "15"
+            defaultValue: "60"
+          - name: Duration
+            label: Duration
+            description: Maxinum number of polls before failing (0 for no limit)
+            mapping: manifest.spec.template.spec.containers[0].env[5].value
+            defaultValue: "60"
+          - name: Job Name
+            label: Job Name
+            description: Name of job to pull artifact from (empty for no artifact)
+            mapping: manifest.spec.template.spec.containers[0].env[6].value
+            defaultValue: ""
+          - name: Artifact Name
+            label: Artifact Name
+            description: File name of artifact to read metadata from (empty for no artifact)
+            mapping: manifest.spec.template.spec.containers[0].env[7].value
+            defaultValue: ""
         manifest:
           apiVersion: batch/v1
           kind: Job
           metadata:
-            name: datadog-monitor
-            namespace: spinnaker
+            name: gitlab-test
+            namespace: root-change
           spec:
             backoffLimit: 0
             template:
               spec:
                 containers:
-                  - env:
-                      - name: DD_API_KEY
+                  - name: gitlab
+                    env:
+                      - name: GITLAB_TOKEN
                         valueFrom:
                           secretKeyRef:
-                            key: dd_api_key
-                            name: datadog-keys
-                      - name: DD_APP_KEY
-                        valueFrom:
-                          secretKeyRef:
-                            key: dd_app_key
-                            name: datadog-keys
-                      - name: DD_MONITOR_ID
-                        value: '9631699'
-                      - name: COUNT
-                        value: '4'
+                            name: gitlab
+                            key: GITLAB_TOKEN
+                      - name: GITLAB_URL
+                        value: 'http://gitlab.domain.com'
+                      - name: PROJECT_NAME
+                        value: 'superteam/my-awesome-project'
+                      - name: BRANCH
+                        value: 'master'
                       - name: INTERVAL
-                        value: '15'
-                    image: 'justinrlee/rj-datadog-monitor:1571139655'
-                    name: datadog
+                        value: '60'
+                      - name: MAX_WAIT
+                        value: '60'
+                      - name: JOB_NAME
+                        value: 'rspec'
+                      - name: ARTIFACT_NAME
+                        value: 'build.properties'
+                    image: 'justinrlee/rj-gitlab:1571415673'
                 restartPolicy: Never
-            ttlSecondsAfterFinished: 60
+            ttlSecondsAfterFinished: 600
 ```
