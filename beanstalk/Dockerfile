@@ -2,8 +2,6 @@ FROM python:3.7-alpine
 
 RUN pip3 install boto3
 
-# RUN mkdir -p /var/www/
-
 ADD create_app_version_from_s3.py /
 
 ENV PYTHONUNBUFFERED=1
