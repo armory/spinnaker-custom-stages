@@ -69,7 +69,7 @@ job:
         waitForCompletion: true
         application: spin
         # ^ must exist, must have at least one server group
-        propertyFile: jira
+        propertyFile: push
         # ^ which container to look in for SPINNAKER_CONFIG_JSON
         parameters:
           - name: manifest
