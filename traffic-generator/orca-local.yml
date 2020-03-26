@@ -1,0 +1,55 @@
+job:
+  preconfigured:
+    kubernetes:
+      - label: Traffic Generator
+        type: trafficGen
+        description: A stage to generate traffic to two different endpoints for canary anaylsis
+        cloudProvider: kubernetes
+        account: spinnaker
+        credentials: spinnaker
+        waitForCompletion: true
+        application: capone
+        parameters:
+          - name: URL_1
+            label: Baseline URL enpoint
+            description: Full URL to the endpoint of baseline deployment
+            mapping: manifest.spec.template.spec.containers[0].env[0].value
+            defaultValue: https://reqres.in/api/users/2
+          - name: URL_2
+            label: Secondary URL enpoint
+            description: Full URL to the endpoint you want to compare against the baseline
+            mapping: manifest.spec.template.spec.containers[0].env[1].value
+            defaultValue: https://reqres.in/api/users/3
+          - name: EXECUTIONS
+            label: Comparison Executions
+            description: Each endpoint will be requested this number of times
+            mapping: manifest.spec.template.spec.containers[0].env[2].value
+            defaultValue: 100
+          - name: DELAY
+            label: Delayed Start
+            mapping: manifest.spec.template.spec.containers[0].env[3].value
+            description: The amount of time you would like to wait between each execution start
+            defaultValue: 2
+        manifest:
+          apiVersion: batch/v1
+          kind: Job
+          metadata:
+            name: canary-generator
+            namespace: spinnaker
+          spec:
+            backoffLimit: 0
+            template:
+              spec:
+                restartPolicy: Never
+                containers:
+                  - name: traffic-generator
+                    image: continuouslee/jenkinscanaryecsdemo:latest
+                    env:
+                      - name: URL_1
+                        value: $(URL_1)
+                      - name: URL_2
+                        value: $(URL_2)
+                      - name: EXECUTIONS
+                        value: $(EXECUTIONS)
+                      - name: DELAY
+                        value: $(DELAY)
