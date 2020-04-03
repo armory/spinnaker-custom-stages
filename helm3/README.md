@@ -8,8 +8,6 @@ kubectl -n spinnaker create secret generic git-creds --from-literal=username=jus
 
 More generic one:
 ```
-[3/27 11:21 AM] Justin (Guest)
-    
 apiVersion: batch/v1
 kind: Job
 metadata:
