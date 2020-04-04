@@ -1,0 +1,11 @@
+FROM alpine
+
+RUN apk add git
+
+RUN wget https://get.helm.sh/helm-v3.1.2-linux-amd64.tar.gz \
+  && tar -xzvf helm-v3.1.2-linux-amd64.tar.gz \
+  && mv /linux-amd64/helm /usr/local/bin/helm
+
+ADD entrypoint.sh /
+
+ENTRYPOINT /entrypoint.sh
