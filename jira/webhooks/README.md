@@ -56,15 +56,17 @@ Authorization:
 For example, if your JIRA service account username is `username` and your password is `password`, then do this:
 
 ```bash
-$ echo 'serviceaccount:password' | base64
-c2VydmljZWFjY291bnQ6cGFzc3dvcmQK
+$ echo -n 'serviceaccount:password' | base64
+c2VydmljZWFjY291bnQ6cGFzc3dvcmQ=
 ```
 
 And then your auth header will look like this (this is a "Basic Auth" header)
 
 ```yml
-      Authorization: Basic c2VydmljZWFjY291bnQ6cGFzc3dvcmQK
+      Authorization: Basic c2VydmljZWFjY291bnQ6cGFzc3dvcmQ=
 ```
+
+Capitalization of `Basic` matters.  So does the `-n` in the echo (which removes the trailing endline).
 
 ## JIRA Stages
 
