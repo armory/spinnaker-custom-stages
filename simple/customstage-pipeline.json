@@ -1,0 +1,76 @@
+{
+  "appConfig": {},
+  "keepWaitingPipelines": false,
+  "lastModifiedBy": "alchen99",
+  "limitConcurrent": true,
+  "parameterConfig": [
+    {
+      "default": "Garden Tools",
+      "description": "Other garden things",
+      "hasOptions": false,
+      "label": "",
+      "name": "garden-things",
+      "options": [
+        {
+          "value": ""
+        }
+      ],
+      "pinned": false,
+      "required": false
+    }
+  ],
+  "stages": [
+    {
+      "comments": "Output rjtest = ${#stage(\"Garden Custom Stage\")['outputs']['things']}",
+      "name": "Wait Output RJ var",
+      "refId": "6",
+      "requisiteStageRefIds": [
+        "11"
+      ],
+      "type": "wait",
+      "waitTime": 1
+    },
+    {
+      "comments": "Garden Name = ${#stage(\"Garden Custom Stage\")['outputs']['GARDEN_NAME']}",
+      "name": "Wait Output RJ JSON",
+      "refId": "7",
+      "requisiteStageRefIds": [
+        "11"
+      ],
+      "type": "wait",
+      "waitTime": 1
+    },
+    {
+      "comments": "All properties = ${#toJson(#stage('Garden Custom Stage')['outputs']['GARDEN_THINGS'])}",
+      "name": "Wait Output RJ JSON nonString",
+      "refId": "8",
+      "requisiteStageRefIds": [
+        "7"
+      ],
+      "type": "wait",
+      "waitTime": 1
+    },
+    {
+      "comments": "${#toJson(#stage('Garden Custom Stage')['outputs']['propertyFileContents'])}",
+      "name": "Wait Output RJ JSON All Properties",
+      "refId": "9",
+      "requisiteStageRefIds": [
+        "8"
+      ],
+      "type": "wait",
+      "waitTime": 1
+    },
+    {
+      "alias": "preconfiguredJob",
+      "name": "Garden Custom Stage",
+      "parameters": {
+        "GARDEN_ITEM": "Some garden item"
+      },
+      "refId": "11",
+      "requisiteStageRefIds": [],
+      "type": "gardenThings"
+    }
+  ],
+  "triggers": [],
+  "updateTs": "1600114616000"
+}

@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: rj-garden
+  namespace: runjob
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      containers:
+        - args:
+            - >-
+              env; wget -q -O - 
+              https://webhook.site/34b1feba-0a41-4371-a502-c110bb314636; echo;
+              echo SPINNAKER_PROPERTY_THINGS="${parameters["garden-things"]}";
+              echo
+          command:
+            - /bin/sh
+            - '-c'
+          image: 'busybox:latest'
+          name: rj-garden
+      restartPolicy: Never
+  ttlSecondsAfterFinished: 600
