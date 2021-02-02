@@ -22,4 +22,9 @@ On the Kubernetes cluster where this custom job will run do the following:
 * Test the URL by running `curl -s $YOUR_WEBHOOK_SITE_URL`
 
 ### Edit the files
-Edit the YML files in this directory and the file rj-pipeline-def.json. Replace the webhook.site URL with `$YOUR_WEBHOOK_SITE_URL`
+Edit the `YML files` in this directory and the file `rj-pipeline-def.json`. Replace the webhook.site URL with `$YOUR_WEBHOOK_SITE_URL`
+
+### Redeploy Spinnaker
+
+### Import the pipeline definitions into Spinnaker
+Import the pipeline definitions (`*.json` files) into the Spinnaker application `testrj`
