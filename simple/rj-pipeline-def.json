@@ -1,0 +1,131 @@
+{
+  "appConfig": {},
+  "keepWaitingPipelines": false,
+  "lastModifiedBy": "admin",
+  "limitConcurrent": true,
+  "parameterConfig": [
+    {
+      "default": "Garden Tools",
+      "description": "Other garden things",
+      "hasOptions": false,
+      "label": "",
+      "name": "garden-things",
+      "options": [
+        {
+          "value": ""
+        }
+      ],
+      "pinned": false,
+      "required": false
+    }
+  ],
+  "stages": [
+    {
+      "account": "spinnaker",
+      "alias": "runJob",
+      "application": "testrj",
+      "cloudProvider": "kubernetes",
+      "comments": "Where did my stage comments go off to",
+      "consumeArtifactSource": "propertyFile",
+      "credentials": "spinnaker",
+      "expectedArtifacts": [
+        {
+          "defaultArtifact": {
+            "artifactAccount": "embedded-artifact",
+            "id": "d9363eaa-e0e6-4e95-907a-8897360e7724",
+            "name": "rj-default-art",
+            "type": "embedded/base64"
+          },
+          "displayName": "jolly-bulldog-93",
+          "id": "1496e9fd-9e6b-45ff-b916-a2f01f52d7b9",
+          "matchArtifact": {
+            "artifactAccount": "embedded-artifact",
+            "id": "03796b51-d4c0-4b1c-a235-cd50995dc416",
+            "name": "rj-art",
+            "type": "embedded/base64"
+          },
+          "useDefaultArtifact": true,
+          "usePriorArtifact": false
+        }
+      ],
+      "manifest": {
+        "apiVersion": "batch/v1",
+        "kind": "Job",
+        "metadata": {
+          "name": "rj-garden",
+          "namespace": "runjob"
+        },
+        "spec": {
+          "backoffLimit": 0,
+          "template": {
+            "spec": {
+              "containers": [
+                {
+                  "args": [
+                    "env; wget -q -O - https://webhook.site/34b1feba-0a41-4371-a502-c110bb314636; echo; echo SPINNAKER_PROPERTY_THINGS=\"${parameters[\"garden-things\"]}\"; echo"
+                  ],
+                  "command": [
+                    "/bin/sh",
+                    "-c"
+                  ],
+                  "image": "busybox:latest",
+                  "name": "rj-garden"
+                }
+              ],
+              "restartPolicy": "Never"
+            }
+          },
+          "ttlSecondsAfterFinished": 600
+        }
+      },
+      "name": "RJ",
+      "propertyFile": "rj-garden",
+      "refId": "1",
+      "requisiteStageRefIds": [],
+      "source": "text",
+      "type": "runJobManifest"
+    },
+    {
+      "comments": "Output rjtest = ${#stage(\"RJ\")['outputs']['things']}",
+      "name": "Wait Output RJ var",
+      "refId": "6",
+      "requisiteStageRefIds": [
+        "1"
+      ],
+      "type": "wait",
+      "waitTime": 1
+    },
+    {
+      "comments": "Garden Name = ${#stage(\"RJ\")['outputs']['GARDEN_NAME']}",
+      "name": "Wait Output RJ JSON",
+      "refId": "7",
+      "requisiteStageRefIds": [
+        "1"
+      ],
+      "type": "wait",
+      "waitTime": 1
+    },
+    {
+      "comments": "All properties = ${#toJson(#stage('RJ')['outputs']['GARDEN_THINGS'])}",
+      "name": "Wait Output RJ JSON nonString",
+      "refId": "8",
+      "requisiteStageRefIds": [
+        "7"
+      ],
+      "type": "wait",
+      "waitTime": 1
+    },
+    {
+      "comments": "${#toJson(#stage('RJ')['outputs']['propertyFileContents'])}",
+      "name": "Wait Output RJ JSON All Properties",
+      "refId": "9",
+      "requisiteStageRefIds": [
+        "8"
+      ],
+      "type": "wait",
+      "waitTime": 1
+    }
+  ],
+  "triggers": [],
+  "updateTs": "1586297132000"
+}

@@ -1,0 +1,59 @@
+apiVersion: spinnaker.armory.io/v1alpha2
+kind: SpinnakerService
+metadata:
+  name: spinnaker  # name doesn't matter since this is a patch
+spec:
+  # spec.spinnakerConfig - This section is how to specify configuration spinnaker
+  spinnakerConfig:
+    # spec.spinnakerConfig.profiles - This section contains the YAML of each service's profile
+    profiles:
+      orca:
+        job:
+          preconfigured:
+            kubernetes:
+              - label: Garden Things
+                # this defines the 'type' of the stage in the stage definition
+                type: gardenThings
+                description: List of Garden Things
+                cloudProvider: kubernetes
+                # cloud provider account for both account and credentials
+                account: spinnaker
+                # cloud provider account for both account and credentials
+                credentials: spinnaker
+                waitForCompletion: true
+                # application must exist, must have at least one server group
+                application: testrj
+                # which container to look in for SPINNAKER_CONFIG_JSON
+                propertyFile: garden-things-rj
+                parameters:
+                  - name: GARDEN_ITEM
+                    label: Garden Item
+                    description: Garden item to add to list
+                    mapping: manifest.spec.template.spec.containers[0].env[0].value
+                    defaultValue: "Some garden item"
+                manifest:
+                  apiVersion: batch/v1
+                  kind: Job
+                  metadata:
+                    name: garden-things-rj
+                    namespace: runjob
+                  spec:
+                    backoffLimit: 0
+                    template:
+                      spec:
+                        containers:
+                          - name: garden-things-rj
+                            image: 'busybox:latest'
+                            env:
+                              - name: GARDEN_ITEM
+                                value: 'WILL_BE_REPLACED'
+                            command:
+                              - /bin/sh
+                              - '-c'
+                            args:
+                              - >-
+                                env; wget -q -O - https://webhook.site/34b1feba-0a41-4371-a502-c110bb314636; echo;
+                                echo SPINNAKER_PROPERTY_THINGS="$GARDEN_ITEM"; echo
+                        restartPolicy: Never
+                    ttlSecondsAfterFinished: 600
+
