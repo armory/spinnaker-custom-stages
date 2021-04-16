@@ -2,7 +2,22 @@
 
 Spinnaker allows you to define custom webhooks which show up in the Spinnaker UI.
 
-Each custom stage can be configured by creating an entry in `/home/spinnaker/.hal/default/profiles/orca-local.yml` (create this file if it does not exist)
+For halyard based configuration. each custom stage can be configured by creating an entry in `/home/spinnaker/.hal/default/profiles/orca-local.yml` (create this file if it does not exist)
+
+For operator based configuration, add to:
+
+```yml
+apiVersion: spinnaker.armory.io/v1alpha2
+kind: SpinnakerService
+metadata:
+  name: spinnaker
+spec:
+  spinnakerConfig:
+    profiles:
+      orca:
+        webhook:
+          preconfigured:
+```
 
 The basic format of this portion of the file looks like this:
 
